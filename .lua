@@ -6,6 +6,9 @@ local T1 = wndw:Tab("Main")
 local T2 = wndw:Tab("Hatch")
 local egg = {}
 local excEnemy = ""
+local luck = 9e9
+local task = ""
+local zoneUnlock = 0
 local Codes = {
   "Update4",
   "1M",
@@ -30,7 +33,16 @@ local Codes = {
   "7000Players",
   "1500FAV",
   "1500Likes",
-  "Weekend"
+  "Weekend",
+  "Update7",
+  "6000FAV",
+  "Hero",
+  "5000Likes",
+  "Update6",
+  "5500FAV",
+  "Silver",
+  "RAIDS",
+  "Grimoires"
 }
 
 local function Children(trg,func)
@@ -64,11 +76,19 @@ T1:Toggle("Auto kill [ Hit first ]",false,function(value)
 end
 end)
 
-T1:Toggle("Auto click / gain powers",false,function(value)
+T1:Toggle("Auto click / gain powers ( 1X powers )",false,function(value)
+    _G.gp1x = value
+    while wait() do
+      if _G.gp1x == false then break end
+      callRemote({["Action"] = "Mouse_Click"})
+    end
+end)
+
+T1:Toggle("Auto click / gain powers ( 2X powers )",false,function(value)
     _G.gp = value
     while wait() do
       if _G.gp == false then break end
-      callRemote({["Action"] = "Mouse_Click"})
+      callRemote({["Action"] = "Mouse_Click",["Zone"] = workspace["Benches"]:FindFirstChild("Zone x2")["Zone_1"]})
     end
 end)
 
@@ -79,6 +99,49 @@ end)
 T1:Button("Redeem all codes",function()
     for array = 1,#Codes do
       callRemote({["Action"] = "Redeem_Code",["Text"] = Codes[array]})
+    end
+end)
+
+T1:Toggle("Auto claim hourly rewards",false,function(value)
+    _G.DailyAct = value
+    while wait() do
+      if _G.DailyAct == false then break end
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 1})
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 2})
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 3})
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 4})
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 5})
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 6})
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 7})
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 8})
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 9})
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 10})
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 11})
+      callRemote({["Action"] = "Hourly_Rewards",["Id"] = 12})
+    end
+end)
+
+T1:Toggle("Auto level up",false,function(value)
+    _G.lvl = value
+    while wait() do
+      if _G.lvl == false then break end
+      callRemote({["Action"] = "Powers",["Name"] = "Level"})
+    end
+end)
+
+T1:Toggle("Auto claim quest",false,function(value)
+    _G.miss = value
+    while wait() do
+      if _G.miss == false then break end
+      callRemote({["Id"] = task,["Type"] = "Complete",["Action"] = "Quest"})
+    end
+end)
+
+T1:Toggle("Auto unlock next zone",false,function(value)
+    _G.wof = value
+    while wait() do
+      if _G.wof == false then break end
+      callRemote({["Action"] = "ZonePurchase",["Id"] = zoneUnlock})
     end
 end)
 
@@ -94,8 +157,52 @@ T2:Toggle("Auto hatch",false,function(value)
     end
 end)
 
+T2:Toggle("Auto hatch stands",false,function(value)
+    _G.htss = value
+    while wait() do
+      if _G.htss == false then break end
+      callRemote({["Luck"] = luck,["Action"] = "Powers",["Name"] = "Stands"})
+    end
+end)
+
+T2:Toggle("Auto hatch curses",false,function(value)
+    _G.htc = value
+    while wait() do
+      if _G.htc == false then break end
+      callRemote({["Luck"] = luck,["Action"] = "Powers",["Name"] = "Curses"})
+    end
+end)
+
+T2:Toggle("Auto hatch sword",false,function(value)
+    _G.htw = value
+    while wait() do
+      if _G.htw == false then break end
+      callRemote({["Open_Amount"] = 1,["Luck"] = luck,["Name"] = "Weapons_1",["Action"] = "Gacha_Activate"})
+    end
+end)
+
+T2:Toggle("Auto hatch rare/secret star eggs 1 ( Resource )",false,function(value)
+    _G.htse1 = value
+    while wait() do
+      if _G.htse1 == false then break end
+      callRemote({["Selected"] = {"Collector_Star_1"},["Action"] = "Use",["Category"] = "Resources"})
+    end
+end)
+
+T2:Toggle("Auto hatch rare/secret star eggs 2 ( Resource )",false,function(value)
+    _G.htse2 = value
+    while wait() do
+      if _G.htse2 == false then break end
+      callRemote({["Selected"] = {"Collector_Star_2"},["Action"] = "Use",["Category"] = "Resources"})
+    end
+end)
+
 lib:HookFunction(function(method,self,args)
     if method == "FireServer" and self == "To_Server" and _G.kills == true then
       excEnemy = args[1]["Info"]["Id"]
+    elseif method == "FireServer" and self == "To_Server" and args[1]["Type"] == "Accept" and args[1]["Action"] == "Quest" then
+      task = args[1]["Id"]
+    elseif method == "FireServer" and self == "To_Server" and args[1]["Action"] == "ZonePurchase" then
+      zoneUnlock = args[1]["Id"] + 1
     end
 end)
