@@ -43,7 +43,7 @@ local function callRemote(args)
   ReplicatedStorage["Events"]["To_Server"]:FireServer(args)
 end
 --ReplicatedStorage.Models.Eggs
-wait(1)
+
 lib:AddTable(ReplicatedStorage["Models"]["Eggs"],egg)
 
 T1:Toggle("Auto kill [ All ]",false,function(value)
@@ -82,7 +82,7 @@ T1:Button("Redeem all codes",function()
     end
 end)
 
-T2:Dropdown("Select eggs",{"1","2"},function(value)
+T2:Dropdown("Select eggs",egg,function(value)
     _G.eggname = value
 end)
 
@@ -95,7 +95,7 @@ T2:Toggle("Auto hatch",false,function(value)
 end)
 
 lib:HookFunction(function(method,self,args)
-    if method == "FireServer" and self == "To_Server" and args[1]["Info"]["Id"] then
+    if method == "FireServer" and self == "To_Server" and _G.kills == true then
       excEnemy = args[1]["Info"]["Id"]
     end
 end)
