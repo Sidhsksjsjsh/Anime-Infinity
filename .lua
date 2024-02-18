@@ -4,6 +4,8 @@ local workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local T1 = wndw:Tab("Main")
 local T2 = wndw:Tab("Hatch")
+local T3 = wndw:Tab("Raids")
+local user = game.Players.LocalPlayer
 local egg = {}
 local excEnemy = ""
 local luck = 1
@@ -58,23 +60,26 @@ end
 
 lib:AddTable(ReplicatedStorage["Models"]["Eggs"],egg)
 
-T1:Toggle("Auto kill [ All ]",false,function(value)
+T1:Toggle("Auto kill nearest [ 20 studs ]",false,function(value)
     _G.kill = value
   while wait() do
       if _G.kill == false then break end
       Children(workspace["Debris"]["Monsters"],function(i,v)
-          callRemote({["Info"] = {["Id"] = v.Name},["Action"] = "Mouse_Click"})
+          if (user.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude < 20 then
+            callRemote({["Info"] = {["Id"] = v.Name},["Action"] = "Mouse_Click"})
+          end
       end)
   end
 end)
 
-T1:Toggle("Auto kill [ Hit first ]",false,function(value)
+--[[T1:Toggle("Auto kill [ Hit first ]",false,function(value)
     _G.kills = value
   while wait() do
       if _G.kills == false then break end
       callRemote({["Info"] = {["Id"] = excEnemy},["Action"] = "Mouse_Click"})
 end
 end)
+]]
 
 T1:Toggle("Auto click / gain powers ( 1X powers )",false,function(value)
     _G.gp1x = value
@@ -145,6 +150,14 @@ T1:Toggle("Auto unlock next zone",false,function(value)
     end
 end)
 
+T1:Toggle("Auto claim index",false,function(value)
+    _G.ci = value
+    while wait() do
+      if _G.ci == false then break end
+      callRemote({["Action"] = "Claim_Index",["Category"] = "Pets"})
+    end
+end)
+
 T2:Dropdown("Select eggs",egg,function(value)
     _G.eggname = value
 end)
@@ -181,7 +194,7 @@ T2:Toggle("Auto hatch sword",false,function(value)
     end
 end)
 
-T2:Toggle("Auto hatch rare/secret star eggs 1 ( Resource )",false,function(value)
+T2:Toggle("Auto hatch star collector 1",false,function(value)
     _G.htse1 = value
     while wait() do
       if _G.htse1 == false then break end
@@ -189,7 +202,7 @@ T2:Toggle("Auto hatch rare/secret star eggs 1 ( Resource )",false,function(value
     end
 end)
 
-T2:Toggle("Auto hatch rare/secret star eggs 2 ( Resource )",false,function(value)
+T2:Toggle("Auto hatch star collector 2",false,function(value)
     _G.htse2 = value
     while wait() do
       if _G.htse2 == false then break end
@@ -197,10 +210,28 @@ T2:Toggle("Auto hatch rare/secret star eggs 2 ( Resource )",false,function(value
     end
 end)
 
+T3:Dropdown("Select raid",{"Cursed Raid","Clover Raid"},function(value)
+    _G.raidt = value
+end)
+
+T3:Toggle("Only friends",false,function(value)
+    _G.ff = value
+end)
+
+T3:Toggle("Auto join raid",false,function(value)
+    _G.jraid = value
+    while wait() do
+      if _G.jraid == false then break end
+      if _G.raidt == "Cursed Raid" then
+        callRemote({["Friends"] = _G.ff,["Type"] = "Raid",["Action"] = "Enter_Dungeon",["Name"] = "Cursed_Raid"})
+      elseif _G.raidt == "Clover Raid" then
+        callRemote({["Friends"] = _G.ff,["Type"] = "Raid",["Action"] = "Enter_Dungeon",["Name"] = "Clover_Raid"})
+      end
+    end
+end)
+
 lib:HookFunction(function(method,self,args)
-    if method == "FireServer" and self == "To_Server" and _G.kills == true then
-      excEnemy = args[1]["Info"]["Id"]
-    elseif method == "FireServer" and self == "To_Server" and args[1]["Type"] == "Accept" and args[1]["Action"] == "Quest" then
+    if method == "FireServer" and self == "To_Server" and args[1]["Type"] == "Accept" and args[1]["Action"] == "Quest" then
       task = args[1]["Id"]
     elseif method == "FireServer" and self == "To_Server" and args[1]["Action"] == "ZonePurchase" then
       zoneUnlock = args[1]["Id"] + 1
